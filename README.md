@@ -7,7 +7,7 @@ existed and take the best of each:
 
 - Apple has a good API with support for multiple clipboards and
   multiple datatypes for each clipboard item.  They also created a
-  stand alone clipboard server
+  stand-alone clipboard server, separate from the window server.
 
 - emacs has the kill buffer, which lets you keep multiple items on the
   clipboard at any time.
@@ -57,7 +57,7 @@ tools that allow the user to browse the clipboard.
 
 The client library is in C. Here is what putting data on a clipboard looks like:
 
-'''
+```
   // Create a type list
   char **typelist = clip_create_typelist(2, "public.utf8-plain-text", "public.rtf");
 
@@ -74,7 +74,7 @@ The client library is in C. Here is what putting data on a clipboard looks like:
   char *rtf_text = "{\\rtf1\\ansi{\\fonttbl\\f0\\fswiss Helvetica;}\\f0\\pard\nThis is some {\\b bold} text that you might want to copy\\par\n}";
 
   clip_push_data(CLIPBOARD_GENERAL, item_id, "public.rtf", strlen(rtf_text), rtf_text);
-'''
+```
 
 I will support lazy data providers: If you have created an item and
 promised a data type, when clipd is asked for the data that you have
@@ -90,7 +90,7 @@ kill ring holds 5 items. The IDs of the items are 9, 8, 7, 6, and 5.)
 Then you can ask for the datatypes for a particular item.  And then
 you can ask for your favorite datatype.
 
-'''
+```
   uint16_t last_item_id, item_count;
   clip_item_count(CLIPBOARD_GENERAL, &last_item_id, &item_count);
   
@@ -117,7 +117,7 @@ you can ask for your favorite datatype.
   char *str = clip_string_from_data(data, datalen);
   fprintf(stderr, "Fetched %lu bytes:\"%s\"\n", datalen, str);
   free(str);
-  '''
+```
 
 ## Listeners
 
