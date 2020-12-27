@@ -118,6 +118,7 @@ you can ask for your favorite datatype.
   unsigned char *data;
   clip_item_data_for_type(CLIPBOARD_GENERAL, last_item_id, "public.utf8-plain-text", &datalen, &data);
   char *str = clip_string_from_data(data, datalen);
+  free(data);
   fprintf(stderr, "Fetched %lu bytes:\"%s\"\n", datalen, str);
   free(str);
 ```
