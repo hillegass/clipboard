@@ -39,12 +39,13 @@ The server has multiple pasteboards:
 - CLIPBOARD_DRAG is for drag and drop.
 
 Each clipboard has a kill ring.  For example, in this version of clipd, the
-kill ring is 5 items. If you copy five times, all five will live on
-the clipboard.  When you copy a sixth, the first item copied will be
+general clipboard holds 5 items. If you copy five times, all five will live on
+the clipboard.  When you copy a sixth, the item that was created first will be
 deleted from the clipboard.
 
 The client library is in C and depends on on libsystemd. It is
-declared in clipboard.c.
+declared in clip_common.h and clipboard.h. It is implemented in
+clipboard.c.
 
 ## Data providers
 
@@ -58,7 +59,7 @@ strings, and I hope people use Uniform Type Identifiers like
 Each item that goes on the pasteboard gets a label for the benefit of
 tools that allow the user to browse the clipboard.
 
-The client library is in C. Here is what putting data on a clipboard looks like:
+Here is what putting data on a clipboard looks like:
 
 ```
   // Create a type list
@@ -115,7 +116,7 @@ you can ask for your favorite datatype.
 
   size_t datalen;
   unsigned char *data;
-  clip_item_data_for_type(CLIPBOARD_GENERAL, last_item_id, CLIPBOARD_TYPE_TEXT, &datalen, &data);
+  clip_item_data_for_type(CLIPBOARD_GENERAL, last_item_id, "public.utf8-plain-text", &datalen, &data);
   char *str = clip_string_from_data(data, datalen);
   fprintf(stderr, "Fetched %lu bytes:\"%s\"\n", datalen, str);
   free(str);
@@ -123,7 +124,7 @@ you can ask for your favorite datatype.
 
 ## Listeners
 
-Once this sophisticated clipboard exists, users will want tools to
+Once this sophisticated clipboard is in use, users will want tools to
 monitor and manipulate the data on clipboard. Using D-bus's signals
 API, I don't think it will be difficult to implement a system that
 sends out notifications when the data on the clipboard changes.
