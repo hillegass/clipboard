@@ -20,14 +20,16 @@ int main(int argc, char *argv[]) {
   free(label);
   clip_free_typelist(typelist);
   
-  r = clip_push_data(CLIPBOARD_GENERAL, item_id, CLIPBOARD_TYPE_TEXT, strlen(rtf_text), rtf_text);
-  if (r < 0) {
-    fprintf(stderr, "Error pushing data:%s\n", CLIPBOARD_TYPE_TEXT);
-  }
-  char *rtf_text = "{\\rtf1\\ansi{\\fonttbl\\f0\\fswiss Helvetica;}\\f0\\pard\nThis is some {\\b bold} text that you might want to copy\\par\n}";
-
   r = clip_push_data(CLIPBOARD_GENERAL, item_id, CLIPBOARD_TYPE_RTF, strlen(plain_text), plain_text);
   if (r < 0) {
     fprintf(stderr, "Error pushing data:%s\n", CLIPBOARD_TYPE_RTF);
   }
+  
+  char *rtf_text = "{\\rtf1\\ansi{\\fonttbl\\f0\\fswiss Helvetica;}\\f0\\pard\nThis is some {\\b bold} text that you might want to copy\\par\n}";
+  
+  r = clip_push_data(CLIPBOARD_GENERAL, item_id, CLIPBOARD_TYPE_TEXT, strlen(rtf_text), rtf_text);
+  if (r < 0) {
+    fprintf(stderr, "Error pushing data:%s\n", CLIPBOARD_TYPE_TEXT);
+  }
+
 }

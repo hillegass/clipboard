@@ -1,9 +1,9 @@
 # clipboard
 A clipboard server and client library that communicate over dbus
 
-Copy and paste has been implemented in a dozen different ways. It has
+Over the years, copy-and-paste has been implemented in a dozen different ways. It has
 always been my hope that the open source community would look at what
-existed and take the best of each:
+had been done and take the best of each:
 
 - Apple has a good API with support for multiple clipboards and
   multiple datatypes for each clipboard item.  They also created a
@@ -43,9 +43,9 @@ general clipboard holds 5 items. If you copy five times, all five will live on
 the clipboard.  When you copy a sixth, the item that was created first will be
 deleted from the clipboard.
 
-The client library is in C and depends on on libsystemd. It is
-declared in clip_common.h and clipboard.h. It is implemented in
-clipboard.c.
+The client library is in C and depends only on libsystemd (for the
+sbus functions). It is declared in clip_common.h and clipboard.h. It
+is implemented in clipboard.c.
 
 ## Data providers
 
@@ -65,7 +65,7 @@ Here is what putting data on a clipboard looks like:
   // Create a type list
   char **typelist = clip_create_typelist(2, "public.utf8-plain-text", "public.rtf");
 
-  // Create a clipboard item
+  // Create a clipboard item with "Frivolous Text" label
   uint16_t item_id = clip_create_item(CLIPBOARD_GENERAL, "Frivolous Text", typelist);
   clip_free_typelist(typelist);
 
@@ -78,9 +78,9 @@ Here is what putting data on a clipboard looks like:
   clip_push_data(CLIPBOARD_GENERAL, item_id, "public.rtf", strlen(rtf_text), rtf_text);
 ```
 
-I will support lazy data providers: If you have created an item and
+(I will support lazy data providers: If you have created an item and
 promised a data type, when clipd is asked for the data that you have
-not provided, you will get asked for it. This is not implemented yet.
+not provided, you will get asked for it. This is not implemented yet.)
 
 ## Data consumers
 
@@ -92,19 +92,20 @@ kill ring holds 5 items. The IDs of the items are 9, 8, 7, 6, and 5.)
 Then you can ask for the datatypes for a particular item.  And then
 you can ask for your favorite datatype.
 
-
 ```
   uint16_t last_item_id, item_count;
   clip_item_count(CLIPBOARD_GENERAL, &last_item_id, &item_count);
   
-  if (last_item_id == 0) {
+  if (item_count == 0) {
     fprintf(stderr, "No data on the clipboard\n");
     return;
   }
-  
+
+  // What datatypes are available to me?
   char **typelist;
   clip_item_typelist(CLIPBOARD_GENERAL, last_item_id, &typelist);
-  
+
+  // For fun, let's display them
   char **current_type = typelist;
   fprintf(stderr, "Available types for %u:\n", last_item_id);
   while (*current_type) {
@@ -114,6 +115,7 @@ you can ask for your favorite datatype.
   clip_free_typelist(typelist);
   typelist = NULL;
 
+  // Fetch the plain text data
   size_t datalen;
   unsigned char *data;
   clip_item_data_for_type(CLIPBOARD_GENERAL, last_item_id, "public.utf8-plain-text", &datalen, &data);
@@ -125,7 +127,7 @@ you can ask for your favorite datatype.
 
 ## Listeners
 
-Once this sophisticated clipboard is in use, users will want tools to
+Once this clipboard is in use, users will want tools to
 monitor and manipulate the data on clipboard. Using D-bus's signals
 API, I don't think it will be difficult to implement a system that
 sends out notifications when the data on the clipboard changes.
