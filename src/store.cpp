@@ -34,7 +34,6 @@ public:
   
   ~Buffer() {
     if (owns_data) {
-      fprintf(stderr, "Buffer: Freeing %ld bytes\n", length);
       free(data);
     }
   }

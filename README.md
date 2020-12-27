@@ -43,6 +43,9 @@ kill ring is 5 items. If you copy five times, all five will live on
 the clipboard.  When you copy a sixth, the first item copied will be
 deleted from the clipboard.
 
+The client library is in C and depends on on libsystemd. It is
+declared in clipboard.c.
+
 ## Data providers
 
 When you do a copy, you can specify multiple datatypes.  For example,
@@ -65,14 +68,12 @@ The client library is in C. Here is what putting data on a clipboard looks like:
   uint16_t item_id = clip_create_item(CLIPBOARD_GENERAL, "Frivolous Text", typelist);
   clip_free_typelist(typelist);
 
-  // Data to copy to pasteboard
+  // Push data for plain text
   char *plain_text = "This is some text that you might want to copy";
-
-  // Push data for one type
   clip_push_data(CLIPBOARD_GENERAL, item_id, "public.utf8-plain-text", strlen(plain_text), plain_text);
 
+  // Push data for RTF
   char *rtf_text = "{\\rtf1\\ansi{\\fonttbl\\f0\\fswiss Helvetica;}\\f0\\pard\nThis is some {\\b bold} text that you might want to copy\\par\n}";
-
   clip_push_data(CLIPBOARD_GENERAL, item_id, "public.rtf", strlen(rtf_text), rtf_text);
 ```
 
@@ -89,6 +90,7 @@ kill ring holds 5 items. The IDs of the items are 9, 8, 7, 6, and 5.)
 
 Then you can ask for the datatypes for a particular item.  And then
 you can ask for your favorite datatype.
+
 
 ```
   uint16_t last_item_id, item_count;
