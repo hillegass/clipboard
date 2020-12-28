@@ -15,6 +15,8 @@ uint16_t store_item_count(uint16_t clipboard_id);
 
 // Create an item (including types and a label for observers)
 // Get the id of item pushed out by reference, 0 if none
+// You don't own the label or the sender -- don't free them
+// You do own the typelist -- free it when you are done
 uint16_t
 store_create_item(uint16_t clipboard_id, const char *label, const char *sender, char **typelist,
 		  uint16_t* pushed_out_id, char **pushed_sender);

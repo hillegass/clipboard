@@ -102,4 +102,7 @@ typedef void (*clip_change_handler)(uint16_t, uint16_t, char *, size_t);
 // Returns -1 on error (can't connect to server, no such board)
 int clip_set_change_handler(uint16_t board, clip_change_handler ch);
 
+void wait_for_clipboard_events();
+void process_waiting_clipboard_events();
+
 #endif

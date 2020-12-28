@@ -127,7 +127,31 @@ you can ask for your favorite datatype.
 
 ## Listeners
 
-Once this clipboard is in use, users will want tools to
-monitor and manipulate the data on clipboard. Using D-bus's signals
-API, I don't think it will be difficult to implement a system that
-sends out notifications when the data on the clipboard changes.
+Once this clipboard is in use, users will want tools to monitor and
+manipulate the data on clipboard. Notifications of changes are sent
+using D-bus's signals API.
+
+Here's how it works. You create a function that you want called
+whenever a new item is added to the clipboard:
+
+```
+void on_change(uint16_t board, uint16_t new_item_id, char *label, size_t item_count)
+{
+  fprintf(stderr, "Clipboard %u: New item %u \"%s\" added, total items: %lu\n",
+          board, new_item_id, label, item_count);
+}
+```
+
+Then, you register that:
+```
+  clip_set_change_handler(CLIPBOARD_GENERAL, on_change);
+```
+
+Now, the checking for those signals needs to be in the event loop somehow. For now, for my command-line tools, I just have a loop:
+```
+  for (;;) {
+    process_waiting_clipboard_events();
+    wait_for_clipboard_events();
+  }
+```
+This will involve the event loop of the application that is waiting for these notifications.

@@ -11,6 +11,30 @@ static clip_data_provider data_providers[CLIPBOARD_COUNT];
 static clip_change_handler change_handlers[CLIPBOARD_COUNT];
 static clip_provider_release provider_release[CLIPBOARD_COUNT];
 
+
+// A callback for received signals
+static int bus_signal_cb(sd_bus_message *m, void *user_data, sd_bus_error
+        *ret_error) {
+    int r = 0;
+    uint16_t clipboard, last_item_id, item_count;
+    char *label;
+
+    r = sd_bus_message_read(m, "qqsq", &clipboard, &last_item_id, &label, &item_count);
+    if (r < 0) {
+        fprintf(stderr, "Failed to parse signal message: %s\n", strerror(-r));
+        return -1;
+    }
+
+    clip_change_handler ch = change_handlers[clipboard];
+    if (ch) {
+      ch(clipboard, last_item_id, label, item_count);
+    } 
+    // fprintf(stderr, "Note: Clipboard %u, item %u: \"%s\" was added for a total of %u items\n", clipboard, last_item_id, label, item_count);
+
+    sd_bus_message_unref(m);
+}
+
+
 int
 clip_open() {
   const char *path;
@@ -24,6 +48,15 @@ clip_open() {
     fprintf(stderr, "Failed to connect to user bus: %s\n", strerror(-r));
     return r;
   }
+  
+  sd_bus_slot *slot = NULL;
+  r = sd_bus_add_match(bus, &slot, "type='signal',member='ClipboardChanged'",
+		       bus_signal_cb, NULL);
+  if (r < 0) {
+    fprintf(stderr, "Failed: sd_bus_add_match: %s\n", strerror(-r));
+    return r;
+  }
+    
   return 1;
 }
 
@@ -258,5 +291,46 @@ int clip_item_data_for_type(uint16_t board, uint16_t item_id, char *type, size_t
 int clip_set_change_handler(uint16_t board, clip_change_handler ch)
 {
   change_handlers[board] = ch;
+}
+
+
+void wait_for_clipboard_events() {
+  int r;
+  if (!bus) {
+    r = clip_open();
+    if (r < 0) {
+      return;
+    }
+  }
+
+  r = sd_bus_wait(bus, (uint64_t) -1);
+  if (r < 0) {
+    fprintf(stderr, "Failed to wait on bus: %s\n", strerror(-r));
+    return;
+  }
+}
+
+void process_waiting_clipboard_events() {
+  int r;
+  if (!bus) {
+    r = clip_open();
+    if (r < 0) {
+      return;
+    }
+  }
+  r = 1;
+  while (r > 0) {
+    // sd_bus_message *m = NULL;
+    r = sd_bus_process(bus, NULL);
+    if (r < 0) {
+      fprintf(stderr, "Failed to process bus: %s\n", strerror(-r));
+      return;
+    }
+//const char* member = sd_bus_message_get_member(m);
+//  fprintf(stderr, "Received %s message\n", member);
+//  sd_bus_message_unref(m);
+
+  }
+  
 }
 

@@ -33,14 +33,27 @@ static int method_create_item(sd_bus_message *m, void *userdata, sd_bus_error *r
   char *owner;
   uint16_t last_item_id = store_create_item(clipboard, label, sender, typelist, &pushed_out_id, &owner);
   if (owner) {
-    fprintf(stderr, "No longer an owner of item %u: %s\n", pushed_out_id, owner);
+    // FIXME: tell the former owner that they are released from duty
     free(owner);
   }
-  return sd_bus_reply_method_return(m, "qq", last_item_id, pushed_out_id);
+  r = sd_bus_reply_method_return(m, "qq", last_item_id, pushed_out_id);
+  if (r < 0) {
+    fprintf(stderr, "Unable to return in CreateItem\n");
+  }
+  
+  sd_bus* bus = sd_bus_message_get_bus(m);
+  sd_bus_message *signal = NULL;
+  r = sd_bus_message_new_signal(bus, &signal, CLIP_PATH, CLIP_INTERFACE, "ClipboardChanged");
+  if (r < 0) {
+    fprintf(stderr, "Creation of signal message failed\n");
+    return r;
+  }
+  uint16_t item_count = store_item_count(clipboard);
+  r = sd_bus_message_append(signal,"qqsq", clipboard, last_item_id, label, item_count);
+  return sd_bus_send(bus, signal, NULL);
 }
 
 static int method_push_data(sd_bus_message *m, void *userdata, sd_bus_error *ret_error) {
-  fprintf(stderr, "Push Data called\n");
   int r;
   uint16_t clipboard;
   uint16_t item_id;
@@ -70,7 +83,6 @@ static int method_push_data(sd_bus_message *m, void *userdata, sd_bus_error *ret
 }
 
 static int method_fetch_data(sd_bus_message *m, void *userdata, sd_bus_error *ret_error) {
-  fprintf(stderr, "FetchData called\n");
   int r;
   uint16_t clipboard;
   uint16_t item_id;
@@ -108,7 +120,6 @@ static int method_fetch_data(sd_bus_message *m, void *userdata, sd_bus_error *re
 }
 
 static int method_item_count(sd_bus_message *m, void *userdata, sd_bus_error *ret_error) {
-  fprintf(stderr, "Item Count called\n");
   int r;
   uint16_t clipboard;
   r = sd_bus_message_read(m, "q", &clipboard);
@@ -124,7 +135,6 @@ static int method_item_count(sd_bus_message *m, void *userdata, sd_bus_error *re
 }
 
 static int method_typelist(sd_bus_message *m, void *userdata, sd_bus_error *ret_error) {
-  fprintf(stderr, "Typelist called\n");
   int r;
   uint16_t clipboard;
   uint16_t item_id;
@@ -158,7 +168,7 @@ static int method_typelist(sd_bus_message *m, void *userdata, sd_bus_error *ret_
 }
 
 static int method_types_without_data(sd_bus_message *m, void *userdata, sd_bus_error *ret_error) {
-  fprintf(stderr, "Types Without Data called\n");
+  fprintf(stderr, "*** Unimplemented!Types Without Data called\n");
   return 1;
 }
 
